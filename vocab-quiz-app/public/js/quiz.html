@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vocabulary Quiz</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="quiz-body">
+  <div class="quiz-app">
+    <!-- Registration / Pending Tasks -->
+    <div id="registration" class="card centered fade-in">
+      <h1>📖 Vocabulary Quiz</h1>
+      <input type="text" id="student-name" placeholder="Enter your name">
+      <button id="enter-btn" class="btn">Enter</button>
+      <div id="todo-section" style="display:none;">
+        <h3>Your Pending Quizzes</h3>
+        <div id="todo-list"></div>
+      </div>
+    </div>
+
+    <!-- Quiz In Progress -->
+    <div id="quiz-area" style="display:none;">
+      <div id="step1" class="card step fade-in">
+        <div id="question-prompt"></div>
+        <div id="choices" class="choices-grid"></div>
+        <div id="step1-feedback" class="feedback"></div>
+      </div>
+      <div id="step2" class="card step fade-in" style="display:none;">
+        <h2 id="review-word"></h2>
+        <p><strong>Simple:</strong> <span id="review-def"></span></p>
+        <div id="review-detail"></div>
+        <ul id="review-sentences"></ul>
+        <button id="next-to-step3" class="btn">Continue</button>
+      </div>
+      <div id="step3" class="card step fade-in" style="display:none;">
+        <p id="fill-sentence"></p>
+        <input type="text" id="fill-input" placeholder="Type the correct form">
+        <button id="submit-fill" class="btn">Submit</button>
+        <div id="step3-feedback" class="feedback"></div>
+      </div>
+      <div id="quiz-progress" class="progress"></div>
+    </div>
+
+    <!-- Quiz Complete -->
+    <div id="quiz-complete" class="card centered fade-in" style="display:none;">
+      <h2>🎉 Quiz Complete!</h2>
+      <p>Accuracy: <span id="final-accuracy"></span>%</p>
+      <button onclick="location.reload()" class="btn">Back to Home</button>
+    </div>
+  </div>
+  <div id="dict-popup" class="popup-card" style="display:none;"></div>
+  <script src="/js/quiz.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Report</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body class="report-body">
+  <div class="container">
+    <div id="auth-card" class="card centered">
+      <h2>Parent Report Access</h2>
+      <input type="text" id="parent-student-name" placeholder="Enter student name">
+      <button id="view-report-btn" class="btn">View Report</button>
+    </div>
+    <div id="report-content" class="report-card" style="display:none;">
+      <h2 id="report-name"></h2>
+      <div class="metric-cards" id="metric-cards"></div>
+      <div class="charts-row">
+        <div class="chart-box"><canvas id="trendChart"></canvas></div>
+        <div class="chart-box"><canvas id="pieChart"></canvas></div>
+      </div>
+      <div class="chart-box"><canvas id="masteryBarChart"></canvas></div>
+      <div class="advice-box" id="advice-box"></div>
+    </div>
+    <div id="error-msg" class="card centered" style="display:none;"></div>
+  </div>
+  <script src="/js/report.js"></script>
+</body>
+</html>
