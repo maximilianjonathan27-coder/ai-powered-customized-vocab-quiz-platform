@@ -8,6 +8,14 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ---------- Page Routes ----------
+// express.static only serves files by their exact path, so extension-less
+// routes like /quiz, /teacher and /report need explicit handlers that map
+// to the corresponding HTML files in public/.
+app.get('/quiz', (req, res) => res.sendFile(path.join(__dirname, 'public', 'quiz.html')));
+app.get('/teacher', (req, res) => res.sendFile(path.join(__dirname, 'public', 'teacher.html')));
+app.get('/report', (req, res) => res.sendFile(path.join(__dirname, 'public', 'report.html')));
+
 const DATA_DIR = path.join(__dirname, 'data');
 const SETS_FILE = path.join(DATA_DIR, 'vocab_sets.json');
 const STUDENTS_FILE = path.join(DATA_DIR, 'students.json');
