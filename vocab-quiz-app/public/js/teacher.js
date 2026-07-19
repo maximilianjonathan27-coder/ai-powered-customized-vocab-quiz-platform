@@ -130,26 +130,86 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Publish
   async function loadPublish() {
-    const [allRes, pubRes] = await Promise.all([fetch('/api/sets'), fetch('/api/settings/published')]);
-    const all = await allRes.json();
-    const published = await pubRes.json();
     const div = document.getElementById('publish-checkboxes');
-    div.innerHTML = all.map(s => `
+    let all = [];
+    let published = [];
+    try {
+      const [allRes, pubRes] = await Promise.all([
+        fetch('/api/sets'),
+        fetch('/api/settings/published')
+      ]);
+      if (!allRes.ok || !pubRes.ok) throw new Error('Failed to load publish data');
+      const allData = await allRes.json();
+      const pubData = await pubRes.json();
+      all = Array.isArray(allData) ? allData : [];
+      published = Array.isArray(pubData) ? pubData : [];
+    } catch (err) {
+      div.innerHTML = '<p class="error">Failed to load sets. Please try again.</p>';
+      return;
+    }
+
+    // Normalize published IDs to strings so comparisons against checkbox values (always strings) work correctly
+    const publishedIds = published.map(id => String(id));
+
+    if (all.length === 0) {
+      div.innerHTML = '<p>No sets available to publish yet.</p>';
+      return;
+    }
+
+    div.innerHTML = all.map(s => {
+      const id = String(s.id);
+      const isChecked = publishedIds.includes(id);
+      return `
       <label class="checkbox-item">
-        <input type="checkbox" value="${s.id}" ${published.includes(s.id) ? 'checked' : ''}>
+        <input type="checkbox" value="${id}" ${isChecked ? 'checked' : ''}>
         ${s.name} (${s.count} words)
       </label><br>
-    `).join('');
+    `;
+    }).join('');
   }
-  document.getElementById('save-publish').addEventListener('click', async () => {
+
+  document.getElementById('save-publish').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    const statusEl = document.getElementById('publish-status');
     const checkboxes = document.querySelectorAll('#publish-checkboxes input[type="checkbox"]');
-    const ids = Array.from(checkboxes).filter(c => c.checked).map(c => c.value);
-    await fetch('/api/settings/publish/bulk', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ publishedSets: ids })
-    });
-    alert('Published sets updated.');
+    const ids = Array.from(checkboxes)
+      .filter(c => c.checked)
+      .map(c => c.value);
+
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Saving...';
+    if (statusEl) statusEl.textContent = '';
+
+    try {
+      const res = await fetch('/api/settings/publish/bulk', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ publishedSets: ids })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to update published sets');
+      }
+      if (statusEl) {
+        statusEl.textContent = 'Published sets updated successfully.';
+        statusEl.classList.remove('error');
+        statusEl.classList.add('success');
+      } else {
+        alert('Published sets updated.');
+      }
+    } catch (err) {
+      if (statusEl) {
+        statusEl.textContent = 'Error: ' + err.message;
+        statusEl.classList.remove('success');
+        statusEl.classList.add('error');
+      } else {
+        alert('Error: ' + err.message);
+      }
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
   });
 
   // Students Overview
