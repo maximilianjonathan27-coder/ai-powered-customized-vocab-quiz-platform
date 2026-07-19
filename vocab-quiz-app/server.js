@@ -115,10 +115,47 @@ Return ONLY a JSON array. No extra text.`;
     });
 
     let content = response.data.choices[0].message.content.trim();
-    if (content.startsWith('```json')) content = content.slice(7, -3).trim();
-    else if (content.startsWith('```')) content = content.slice(3, -3).trim();
-    const generatedWords = JSON.parse(content);
-    if (!Array.isArray(generatedWords)) throw new Error('Response is not an array');
+
+    // Strip markdown code fences (```json ... ``` or ``` ... ```), being
+    // tolerant of extra whitespace/line breaks around the fences.
+    const fencedMatch = content.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+    if (fencedMatch) content = fencedMatch[1].trim();
+
+    let generatedWords;
+    try {
+      generatedWords = JSON.parse(content);
+    } catch (parseErr) {
+      // Fall back to a more lenient extraction: grab everything between the
+      // first opening bracket/brace and the last matching closing one.
+      const arrayStart = content.indexOf('[');
+      const arrayEnd = content.lastIndexOf(']');
+      const objectStart = content.indexOf('{');
+      const objectEnd = content.lastIndexOf('}');
+
+      let extracted = null;
+      if (arrayStart !== -1 && arrayEnd !== -1 && arrayEnd > arrayStart) {
+        extracted = content.slice(arrayStart, arrayEnd + 1);
+      } else if (objectStart !== -1 && objectEnd !== -1 && objectEnd > objectStart) {
+        extracted = content.slice(objectStart, objectEnd + 1);
+      }
+
+      if (extracted) {
+        try {
+          generatedWords = JSON.parse(extracted);
+        } catch (secondErr) {
+          console.error('Failed to parse AI response as JSON. Raw response:', content);
+          throw new Error('The AI returned an invalid JSON format. Please try again.');
+        }
+      } else {
+        console.error('Failed to parse AI response as JSON. Raw response:', content);
+        throw new Error('The AI returned an invalid JSON format. Please try again.');
+      }
+    }
+
+    if (!Array.isArray(generatedWords)) {
+      console.error('AI response parsed but is not an array. Raw response:', content);
+      throw new Error('The AI response was not a JSON array of words. Please try again.');
+    }
 
     const sets = readJSON(SETS_FILE);
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
